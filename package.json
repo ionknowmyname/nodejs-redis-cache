@@ -1,0 +1,20 @@
+{
+    "name": "nodejs-redis-cache",
+    "version": "1.0.0",
+    "description": "",
+    "main": "server.js",
+    "scripts": {
+        "start": "nodemon server.js"
+    },
+    "author": "Faithful Olaleru",
+    "license": "ISC",
+    "dependencies": {
+        "dotenv": "^16.0.3",
+        "express": "^4.18.2",
+        "redis": "^4.6.5",
+        "superagent": "^8.0.9"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.22"
+    }
+}
