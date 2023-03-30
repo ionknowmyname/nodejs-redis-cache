@@ -1,15 +1,16 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const github = require("./routes/github");
+import express, { urlencoded, json } from "express";
+import { config } from "dotenv";
+
+import { githubRouter } from "./routes/github.js";
 
 const app = express();
 
-dotenv.config();
+config();
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(urlencoded({ extended: true }));
+app.use(json());
 
-app.use("/api", github);
+app.use("/api", githubRouter);
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {

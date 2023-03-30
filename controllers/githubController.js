@@ -1,4 +1,8 @@
-const request = require("superagent");
+import pkg from "superagent";
+const { get } = pkg;
+import { createClient } from "redis";
+
+const client = createClient(process.env.REDIS_PORT);
 
 const respond = (username, numberOfRepos) => {
     return `User "${username}" has ${numberOfRepos} public repositories.`;
@@ -7,8 +11,7 @@ const respond = (username, numberOfRepos) => {
 const getReposNumber = async (req, res) => {
     const { username } = req.query;
 
-    request
-        .get(`https://api.github.com/users/${username}/repos`)
+    get(`https://api.github.com/users/${username}/repos`)
         .set("User-Agent", "PostmanRuntime/7.31.3")
         .end((err, response) => {
             if (err) throw err;
@@ -24,8 +27,7 @@ const getRepos = async (req, res) => {
     const { username } = req.query;
     if (username === null) return;
 
-    request
-        .get(`https://api.github.com/users/${username}/repos`)
+    get(`https://api.github.com/users/${username}/repos`)
         .set("User-Agent", "PostmanRuntime/7.31.3")
         .end((err, response) => {
             if (err) throw err;
@@ -37,4 +39,5 @@ const getRepos = async (req, res) => {
         });
 };
 
-module.exports = { getReposNumber, getRepos };
+// export default { getReposNumber, getRepos };
+export { getReposNumber, getRepos };
