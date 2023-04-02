@@ -8,9 +8,9 @@ import {
     repoCache,
 } from "../controllers/githubController.js";
 
-router.get("/number", getReposNumber); // numberCache
+router.get("/number", numberCache, getReposNumber); // numberCache
 
-router.get("/repos", getRepos); // repoCache
+router.get("/repos", repoCache, getRepos); // repoCache
 
 // export default router;
 export { router as githubRouter };

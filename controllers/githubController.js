@@ -31,71 +31,51 @@ const getReposNumber = async (req, res, next) => {
     const { username } = req.query;
     if (username === null) return;
 
-    try {
-        const value = await client.get(username);
+    get(`https://api.github.com/users/${username}/repos`)
+        .set("User-Agent", "PostmanRuntime/7.31.3")
+        .end((err, response) => {
+            if (err) throw err;
 
-        if (value) {
-            res.send(respond(username, JSON.parse(value)));
-        } else {
-            get(`https://api.github.com/users/${username}/repos`)
-                .set("User-Agent", "PostmanRuntime/7.31.3")
-                .end((err, response) => {
-                    if (err) throw err;
+            // response.body contains an array of public repositories
+            var repoNumber = response.body.length;
 
-                    // response.body contains an array of public repositories
-                    var repoNumber = response.body.length;
+            client.setEx(username, 60, JSON.stringify(repoNumber)); // set repoNumber for username in redis cache for 60 secs for testing
+            // client.set(username, JSON.stringify(repoNumber), "ex", 60);
+            // client.set(username, repoNumber); // working, setEx not working
 
-                    client.setEx(username, 60, JSON.stringify(repoNumber)); // set repoNumber for username in redis cache for 60 secs for testing
-                    // client.set(username, repoNumber); // working, setEx not working
-
-                    res.send(respond(username, repoNumber));
-                });
-        }
-    } catch (err) {
-        next(err);
-    }
+            res.status(200).json({ message: respond(username, repoNumber) });
+        });
 };
 
 const getRepos = async (req, res, next) => {
     const { username } = req.query;
     if (username === null) return;
 
-    try {
-        const repos = await client.get(username);
+    get(`https://api.github.com/users/${username}/repos`)
+        .set("User-Agent", "PostmanRuntime/7.31.3")
+        .end((err, response) => {
+            if (err) throw err;
 
-        if (repos) {
-            res.send({
+            client.setEx(username, 60, JSON.stringify(response.body)); // set repos for username in redis cache for 60 secs for testing
+
+            res.status(200).json({
                 message: "Successfully retrieved",
-                data: JSON.parse(repos),
+                data: response.body,
             });
-        } else {
-            get(`https://api.github.com/users/${username}/repos`)
-                .set("User-Agent", "PostmanRuntime/7.31.3")
-                .end((err, response) => {
-                    if (err) throw err;
-
-                    client.setEx(username, 60, JSON.stringify(response.body)); // set repos for username in redis cache for 60 secs for testing
-
-                    res.send({
-                        message: "Successfully retrieved",
-                        data: response.body,
-                    });
-                });
-        }
-    } catch (err) {
-        next(err);
-    }
+        });
 };
 
 const numberCache = (req, res, next) => {
     const { username } = req.query;
+    if (username === null) return;
 
     client.get(username, (err, data) => {
         if (err) throw err;
 
-        if (data != null) {
+        if (data) {
+            // !== null
             // data already in cache
-            res.send(respond(username, data));
+            res.status(200).json({ message: respond(username, data) });
         } else {
             next(); // if not. move to the next middleware/next whatever
         }
@@ -104,13 +84,14 @@ const numberCache = (req, res, next) => {
 
 const repoCache = (req, res, next) => {
     const { username } = req.query;
+    if (username === null) return;
 
     client.get(username, (err, data) => {
         if (err) throw err;
 
-        if (data != null) {
+        if (data) {
             // data exists, send data
-            res.send({
+            res.status(200).json({
                 message: "Successfully retrieved",
                 data: JSON.parse(data),
             });
