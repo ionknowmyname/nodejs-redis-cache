@@ -1,16 +1,10 @@
-import { Router } from "express";
-const router = Router();
+const express = require("express");
+const router = express.Router();
 
-import {
-    getReposNumber,
-    getRepos,
-    numberCache,
-    repoCache,
-} from "../controllers/githubController.js";
+const github = require("../controllers/githubController");
 
-router.get("/number", numberCache, getReposNumber); // numberCache
+router.get("/number", github.numberCache, github.getReposNumber); // numberCache
 
-router.get("/repos", repoCache, getRepos); // repoCache
+router.get("/repos", github.repoCache, github.getRepos); // repoCache
 
-// export default router;
-export { router as githubRouter };
+module.exports = router;

@@ -1,8 +1,7 @@
-import pkg from "superagent";
-const { get } = pkg;
-import { createClient } from "redis";
+const superagent = require("superagent");
+const redis = require("redis");
 
-const client = createClient(); //  { url: "redis://localhost:6379" }   //process.env.REDIS_PORT  // 6379, 127.0.0.1
+const client = redis.createClient(); //  { url: "redis://localhost:6379" }   //process.env.REDIS_PORT  // 6379, 127.0.0.1
 
 /* (async () => {
     await client.connect();
@@ -31,27 +30,49 @@ const getReposNumber = async (req, res, next) => {
     const { username } = req.query;
     if (username === null) return;
 
-    get(`https://api.github.com/users/${username}/repos`)
+    // await superagent
+    //     .get(`https://api.github.com/users/${username}/repos`)
+    //     .set("User-Agent", "PostmanRuntime/7.31.3")
+    //     .end((err, response) => {
+    //         if (err) throw err;
+
+    //         // response.body contains an array of public repositories
+    //         var repoNumber = response.body.length;
+
+    //         //client.setEx(username, 60, JSON.stringify(repoNumber)); // set repoNumber for username in redis cache for 60 secs for testing
+    //         client.set(username, JSON.stringify(repoNumber), "ex", 60);
+    //         // client.set(username, repoNumber); // working, setEx/setex not working
+
+    //         res.status(200).json({ message: respond(username, repoNumber) });
+    //     });
+
+    superagent
+        .get(`https://api.github.com/users/${username}/repos`)
         .set("User-Agent", "PostmanRuntime/7.31.3")
-        .end((err, response) => {
+        .then((err, response) => {
             if (err) throw err;
 
             // response.body contains an array of public repositories
             var repoNumber = response.body.length;
 
-            client.setEx(username, 60, JSON.stringify(repoNumber)); // set repoNumber for username in redis cache for 60 secs for testing
-            // client.set(username, JSON.stringify(repoNumber), "ex", 60);
-            // client.set(username, repoNumber); // working, setEx not working
+            //client.setEx(username, 60, JSON.stringify(repoNumber)); // set repoNumber for username in redis cache for 60 secs for testing
+            client.set(username, JSON.stringify(repoNumber), "ex", 60);
+            // client.set(username, repoNumber); // working, setEx/setex not working
 
             res.status(200).json({ message: respond(username, repoNumber) });
+        })
+        .catch((err) => {
+            console.log(err);
         });
+    // .end();
 };
 
 const getRepos = async (req, res, next) => {
     const { username } = req.query;
     if (username === null) return;
 
-    get(`https://api.github.com/users/${username}/repos`)
+    await superagent
+        .get(`https://api.github.com/users/${username}/repos`)
         .set("User-Agent", "PostmanRuntime/7.31.3")
         .end((err, response) => {
             if (err) throw err;
@@ -72,8 +93,7 @@ const numberCache = (req, res, next) => {
     client.get(username, (err, data) => {
         if (err) throw err;
 
-        if (data) {
-            // !== null
+        if (data !== null) {
             // data already in cache
             res.status(200).json({ message: respond(username, data) });
         } else {
@@ -89,7 +109,7 @@ const repoCache = (req, res, next) => {
     client.get(username, (err, data) => {
         if (err) throw err;
 
-        if (data) {
+        if (data !== null) {
             // data exists, send data
             res.status(200).json({
                 message: "Successfully retrieved",
@@ -101,4 +121,4 @@ const repoCache = (req, res, next) => {
     });
 };
 
-export { getReposNumber, getRepos, numberCache, repoCache };
+module.exports = { getReposNumber, getRepos, numberCache, repoCache };

@@ -1,14 +1,14 @@
-import express, { urlencoded, json } from "express";
-import { config } from "dotenv";
+const express = require("express");
+const dotenv = require("dotenv");
 
-import { githubRouter } from "./routes/github.js";
+const githubRouter = require("./routes/github");
 
 const app = express();
 
-config();
+dotenv.config();
 
-app.use(urlencoded({ extended: true }));
-app.use(json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 app.use("/api", githubRouter);
 
